@@ -16,7 +16,7 @@ python -m venv .venv
 
 Open **http://127.0.0.1:8000**, click **Use demo images**, then **Transfer palette**. Interactive API documentation is at `/docs`. Demo images are generated in your browser; no sample photographs or external assets are downloaded.
 
-On macOS/Linux use `.venv/bin/python` instead. The environment prepared in this workspace is already installed; the preview server uses port **8765**.
+On macOS/Linux use `.venv/bin/python` instead. 
 
 ```sh
 docker compose up --build
@@ -77,7 +77,7 @@ python scripts/benchmark.py --size 256 --repeats 5
 
 Tests cover algorithm invariants and statistics, singular images, reproducibility, validation, authentication, byte/pixel limits, cache reuse after app recreation, concurrent durable-file publication, AWS SDK contracts with `botocore.stub.Stubber`, and binary Lambda responses. No tests require AWS credentials or transmit images to AWS.
 
-GitHub Actions runs lint, tests, a repeatable benchmark, a container health check, and SAM template validation. Put **this directory's contents at the root of a new repository** so `.github/workflows/ci.yml` runs correctly. The surrounding workspace contains unrelated private application documents: do not publish its root.
+GitHub Actions runs lint, tests, a repeatable benchmark, a Docker build and container health check, and SAM template validation.
 
 Top-level dependencies are pinned. `requirements-lock.txt` records the complete tested Python environment; dev tools are in `requirements-dev.txt`. CI/container builds use the complete lock to keep transitive versions consistent. See [verification](docs/VERIFICATION.md) for results and remaining unverified components.
 

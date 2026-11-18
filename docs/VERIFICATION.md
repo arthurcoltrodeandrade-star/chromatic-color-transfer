@@ -12,9 +12,9 @@ Checked 18 November 2026 on Windows, Python 3.13.7, using the isolated `.venv` i
 | Browser workflow | Generated demo images → covariance and sliced transfers → cache hit → PNG preview and download link verified |
 | S3 adapter | AWS SDK calls verified with botocore Stubber; no AWS connection |
 | Lambda binary response | Mangum HTTP API events accepted base64 multipart uploads and returned base64 PNG |
-| Docker image | Configuration included; not built locally because Docker is absent |
+| Docker image | Build and container health check passed in GitHub Actions on Ubuntu; Docker is absent locally |
 | Actual AWS deployment | Not performed; SAM CLI/AWS CLI absent, no account/resources accessed |
-| GitHub Actions | Workflow included; not run on GitHub |
+| GitHub Actions | First Test and build run passed (49 seconds), including Python and AWS-template jobs |
 
 The pytest run requires local socket creation on Windows (asyncio/TestClient). The restricted shell environment blocked that socket pair; tests passed when run with local networking allowed. Two upstream deprecation warnings remain: Starlette's httpx TestClient compatibility and Mangum's event-loop creation in the Lambda adapter test. They do not fail the suite.
 
@@ -43,3 +43,5 @@ These are local, algorithm-only measurements on a generated pair. They exclude u
 - Stubbed S3 tests distinguish missing objects from access-denied failures.
 
 The concurrent-write test originally exposed Windows file replacement failing while another thread read the destination. Publication now uses a complete temporary file plus an atomic hard link, with first-writer-wins behavior locally.
+
+GitHub CI verification: initial commit `733413d`, workflow run #1, completed successfully on 18 November 2026. AWS account deployment is still unperformed.
