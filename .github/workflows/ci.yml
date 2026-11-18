@@ -1,0 +1,34 @@
+name: Test and build
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: pytest --cov=chromatic --cov-report=term-missing --cov-fail-under=85
+      - run: python scripts/benchmark.py --size 128 --repeats 2
+      - run: docker build -t chromatic:test .
+      - name: Container smoke test
+        run: |
+          docker run -d --name chromatic -p 127.0.0.1:8000:8000 chromatic:test
+          for i in $(seq 1 20); do
+            if curl --fail http://127.0.0.1:8000/healthz; then exit 0; fi
+            sleep 1
+          done
+          docker logs chromatic
+          exit 1
+  aws-template:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/setup-sam@v2
+      - run: python scripts/prepare_lambda.py
+      - run: sam validate --lint --region eu-west-3

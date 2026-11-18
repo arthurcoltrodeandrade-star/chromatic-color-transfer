@@ -1,0 +1,14 @@
+services:
+  api:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - results:/data
+    environment:
+      COLOR_API_KEY: ${COLOR_API_KEY:-}
+    restart: unless-stopped
+    mem_limit: 768m
+    cpus: 1.0
+volumes:
+  results:

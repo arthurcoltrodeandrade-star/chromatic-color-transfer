@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Chromatic portfolio API - Lambda, API Gateway HTTP API and private S3 artifacts
+Parameters:
+  ApiKey:
+    Type: String
+    NoEcho: true
+    MinLength: 32
+    Description: Shared demo access key; generate locally, do not commit to Git
+Resources:
+  Results:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireDemoResults
+            Status: Enabled
+            Prefix: results/
+            ExpirationInDays: 7
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 4
+        ThrottlingRateLimit: 2
+  Api:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.13
+      Architectures: [x86_64]
+      CodeUri: build/lambda/
+      Handler: chromatic.lambda_handler.handler
+      MemorySize: 1024
+      Timeout: 28
+      ReservedConcurrentExecutions: 2
+      Environment:
+        Variables:
+          COLOR_BUCKET: !Ref Results
+          COLOR_API_KEY: !Ref ApiKey
+          OPENBLAS_NUM_THREADS: '1'
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [s3:GetObject, s3:PutObject]
+              Resource: !Sub '${Results.Arn}/results/*'
+      Events:
+        Root:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /
+            Method: ANY
+        Proxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /{proxy+}
+            Method: ANY
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${Api}'
+      RetentionInDays: 7
+Outputs:
+  StudioUrl:
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/'
+  ResultsBucket:
+    Value: !Ref Results

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chromatic — Color Transfer Studio</title>
+  <style>
+    :root{color-scheme:light;--paper:#f5f3ec;--ink:#242a28;--muted:#626960;--line:#d8dacf;--accent:#c9f27e}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+    header{padding:24px 5vw;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+    .brand{font-size:22px;font-weight:750;letter-spacing:-1px}.brand span{color:#637e44}.nav{font-size:13px;color:var(--muted)}a{color:inherit}
+    main{max-width:1380px;margin:auto;padding:46px 5vw}.eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:700;color:var(--muted)}
+    h1{font-size:clamp(32px,4vw,56px);line-height:1.08;font-weight:550;letter-spacing:-2px;margin:14px 0 18px} .intro{max-width:620px;color:var(--muted)}
+    .workspace{display:grid;grid-template-columns:260px 1fr;gap:28px;margin-top:34px}.controls{border:1px solid var(--line);border-radius:14px;padding:22px;background:#fff9;height:fit-content}
+    label{display:block;font-size:12px;font-weight:650;margin:17px 0 7px}label:first-child{margin-top:0}select,input[type=number],input[type=password]{width:100%;padding:10px;border:1px solid #c7cbbf;border-radius:6px;background:white;font:inherit}
+    input[type=range]{width:100%;accent-color:#526e34}.help{font-size:12px;color:var(--muted);margin:8px 0}.options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button,.download{padding:12px 16px;border-radius:7px;border:1px solid var(--ink);background:var(--ink);color:white;font:600 13px system-ui;cursor:pointer;text-decoration:none;display:inline-block}
+    button:disabled{opacity:.5;cursor:wait}.primary{width:100%;margin-top:20px;background:var(--accent);color:var(--ink);border-color:#b3d76d}.secondary{background:transparent;color:var(--ink);width:100%;margin-top:9px}
+    .canvases{display:grid;grid-template-columns:1fr 1fr;gap:18px;min-width:0}.panel{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
+    .panel-head{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}.panel-head span{color:var(--muted);font-weight:400;font-size:11px}
+    .image-area{height:200px;background:repeating-conic-gradient(#e9ebe4 0% 25%,#f0f1ec 0% 50%) 50%/20px 20px;display:flex;align-items:center;justify-content:center;padding:14px;position:relative}
+    .image-area img{max-width:100%;max-height:100%;object-fit:contain;border-radius:3px}.empty{color:#737a70;text-align:center;font-size:13px}.file-label{margin:0;padding:12px 16px;cursor:pointer;font-size:12px;font-weight:500;border-top:1px solid var(--line);display:block;overflow-wrap:anywhere}.file-label:hover{background:#f2f6ea}.file-label input{display:block;font-size:11px;width:100%;margin-top:6px}
+    .result{grid-column:1/-1}.result .image-area{height:320px}.result .panel-head{border-bottom:1px solid var(--line)}.result-actions{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    #status{margin:0;color:var(--muted);font-size:12px}#status.error{color:#a33220}.download{font-size:12px;padding:8px 12px}[hidden]{display:none!important}
+    .notes{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px;border-top:1px solid var(--line);padding-top:22px;font-size:12px;color:var(--muted)}.notes strong{display:block;color:var(--ink);margin-bottom:4px}
+    footer{margin-top:40px;color:var(--muted);font-size:11px}details{margin-top:16px;font-size:12px}summary{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #7b9d46;outline-offset:3px}
+    @media(max-width:850px){.workspace{grid-template-columns:1fr}.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px}.controls>label{margin-top:0}.controls>p,.controls>details{grid-column:1/-1}.canvases{gap:12px}main{padding-top:28px}}
+    @media(max-width:520px){.canvases,.controls,.notes{grid-template-columns:1fr}.result{grid-column:auto}header{padding:18px 5vw}.nav span{display:none}.image-area{height:180px}.result .image-area{height:240px}}
+  </style>
+</head>
+<body>
+<header><div class="brand">chromatic<span> /</span></div><div class="nav"><span>IMAGE PROCESSING LAB &nbsp; / &nbsp;</span><a href="/docs">API docs ↗</a></div></header>
+<main>
+  <div class="eyebrow">Color transfer studio · 01</div>
+  <h1>Same image.<br>A different atmosphere.</h1>
+  <p class="intro">Borrow the palette of a reference image while keeping your source composition. Compare four statistical methods, from channel matching to sliced transport.</p>
+  <div class="workspace">
+    <form class="controls" id="controls">
+      <div><label for="method">Transfer method</label><select id="method"><option value="covariance">Covariance matching</option><option value="rgb">RGB channel matching</option><option value="lalphabeta">Logarithmic lαβ matching</option><option value="sliced">Sliced transport</option></select><p class="help" id="method-help">Matches channel means and cross-channel covariance.</p></div>
+      <div><label for="strength">Palette strength <output id="strength-value">100%</output></label><input id="strength" type="range" min="0" max="1" step="0.05" value="1"></div>
+      <div class="options" id="sliced-options" hidden><div><label for="iterations">Iterations</label><input id="iterations" type="number" min="1" max="30" value="12"></div><div><label for="seed">Random seed</label><input id="seed" type="number" min="0" max="4294967295" value="42"></div></div>
+      <p class="help">PNG or JPEG · up to 2 MiB and 262,144 pixels per image (for example, 512 × 512). Resize larger images first.</p>
+      <div><button class="primary" id="run" type="submit">Transfer palette ↗</button><button class="secondary" id="demo" type="button">Use demo images</button></div>
+      <details><summary>Cloud access key</summary><label for="api-key">API key</label><input id="api-key" type="password" autocomplete="off" placeholder="Required for hosted deployments"><p class="help">Kept in this page only. Local mode does not require a key.</p></details>
+    </form>
+    <section class="canvases" aria-label="Image comparison">
+      <article class="panel"><div class="panel-head">01 / SOURCE <span>Keep this composition</span></div><div class="image-area"><img id="source-preview" alt="Source image preview" hidden><div class="empty" id="source-empty">Your image starts here</div></div><label class="file-label">Choose source<input id="source" type="file" accept="image/png,image/jpeg"></label></article>
+      <article class="panel"><div class="panel-head">02 / REFERENCE <span>Borrow this palette</span></div><div class="image-area"><img id="reference-preview" alt="Reference palette image preview" hidden><div class="empty" id="reference-empty">A palette to borrow</div></div><label class="file-label">Choose reference<input id="reference" type="file" accept="image/png,image/jpeg"></label></article>
+      <article class="panel result"><div class="panel-head">03 / RESULT <span id="result-meta">Ready when you are</span></div><div class="image-area"><img id="result-preview" alt="Color transfer result" hidden><div class="empty" id="result-empty">Choose two images or try the demo,<br>then transfer the palette.</div></div><div class="result-actions"><p id="status" role="status" aria-live="polite">No images are sent until you press Transfer palette.</p><a class="download" id="download" download="chromatic-result.png" hidden>Download PNG ↓</a></div></article>
+    </section>
+  </div>
+  <section class="notes"><div><strong>Geometry stays yours</strong>Output keeps the source image’s dimensions. Reference images can have a different size.</div><div><strong>Reproducible results</strong>The same images, options and engine version share one result ID. Sliced transport uses a fixed seed.</div><div><strong>Know the trade-off</strong>These methods match global color statistics; they do not recognize objects or preserve semantic colors.</div></section>
+  <footer>Arthur Coltro de Andrade · Adapted from the original color-transfer coursework. Original uploads are not retained as artifacts; result images are retained by the service.</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id), files={}, urls={};
+const explanations={rgb:'Matches the mean and spread of each RGB channel.',lalphabeta:'Matches statistics in decorrelated log-LMS lαβ space, distinct from CIE Lab.',covariance:'Matches channel means and cross-channel covariance.',sliced:'Iteratively matches projected color distributions using a seeded random basis.'};
+function preview(name,blob){if(urls[name])URL.revokeObjectURL(urls[name]);urls[name]=URL.createObjectURL(blob);$(name+'-preview').src=urls[name];$(name+'-preview').hidden=false;$(name+'-empty').hidden=true;}
+function clearResult(){if(urls.result)URL.revokeObjectURL(urls.result);delete urls.result;$('result-preview').hidden=true;$('result-preview').removeAttribute('src');$('result-empty').hidden=false;$('download').hidden=true;$('result-meta').textContent='Ready when you are';}
+for(const name of ['source','reference'])$(name).addEventListener('change',()=>{const file=$(name).files[0];if(file){files[name]=file;preview(name,file);clearResult();}});
+$('method').addEventListener('change',()=>{$('method-help').textContent=explanations[$('method').value];$('sliced-options').hidden=$('method').value!=='sliced';clearResult();});
+$('strength').addEventListener('input',()=>{$('strength-value').textContent=Math.round($('strength').value*100)+'%';});
+function demoImage(palette,kind){return new Promise(resolve=>{const c=document.createElement('canvas');c.width=384;c.height=256;const ctx=c.getContext('2d');const gradient=ctx.createLinearGradient(0,0,384,256);gradient.addColorStop(0,palette[0]);gradient.addColorStop(1,palette[1]);ctx.fillStyle=gradient;ctx.fillRect(0,0,384,256);ctx.fillStyle=palette[2];ctx.beginPath();ctx.arc(kind?270:115,kind?90:105,65,0,Math.PI*2);ctx.fill();ctx.fillStyle=palette[3];ctx.beginPath();ctx.moveTo(0,256);ctx.lineTo(155,135);ctx.lineTo(260,256);ctx.fill();ctx.fillStyle=palette[4];ctx.beginPath();ctx.moveTo(140,256);ctx.lineTo(305,145);ctx.lineTo(384,256);ctx.fill();c.toBlob(resolve,'image/png');});}
+$('demo').addEventListener('click',async()=>{files.source=await demoImage(['#8ca9ab','#e5e5cf','#e3cb72','#617c72','#415f61'],0);files.reference=await demoImage(['#835d86','#f0a26e','#ffe5b0','#65465e','#b36e76'],1);for(const n of ['source','reference']){ $(n).value='';preview(n,files[n]);}clearResult();$('status').textContent='Demo images ready. Choose a method and transfer the palette.';$('status').className='';});
+$('controls').addEventListener('submit',async e=>{e.preventDefault();if(!files.source||!files.reference){$('status').textContent='Choose a source and reference image, or use the demo.';$('status').className='error';return;}clearResult();$('run').disabled=true;$('demo').disabled=true;$('status').className='';$('status').textContent='Transferring palette…';const started=performance.now();const headers={};if($('api-key').value)headers['X-API-Key']=$('api-key').value;try{const form=new FormData();for(const n of ['source','reference'])form.append(n,files[n],n+'.png');for(const n of ['method','strength','iterations','seed'])form.append(n,$(n).value);const response=await fetch('/api/v1/transfers',{method:'POST',headers,body:form});const data=await response.json();if(!response.ok)throw new Error(typeof data.detail==='string'?data.detail:'Please check image limits and transfer settings.');const image=await fetch(data.result_url,{headers});if(!image.ok)throw new Error('Result could not be retrieved. Please retry.');preview('result',await image.blob());$('download').href=urls.result;$('download').hidden=false;$('result-meta').textContent=data.width+' × '+data.height+' · '+data.options.method;$('status').textContent=(data.cached?'Cached result':'New result')+' · '+Math.round(performance.now()-started)+' ms round trip · ID '+data.id.slice(0,12); }catch(error){$('status').textContent=error.message;$('status').className='error';}finally{$('run').disabled=false;$('demo').disabled=false;}});
+</script>
+</body>
+</html>

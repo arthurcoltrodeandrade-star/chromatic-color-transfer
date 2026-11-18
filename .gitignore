@@ -1,0 +1,14 @@
+.venv/
+.data/
+.env
+.aws-sam/
+samconfig.toml
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+artifacts/
+build/
+docs/PROVENANCE.md
